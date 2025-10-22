@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO users (id, name, email, loginMethod, role, createdAt, lastSignedIn) VALUES ('abdellah-test-user', 'Abdellah', 'abdellah@example.com', 'email', 'user', NOW(), NOW()) ON DUPLICATE KEY UPDATE lastSignedIn = NOW();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2tRZSax1aYgteNS.82e3743853f7 --database 8qro2kEXJ3rAuEYD4pmWCH --execute INSERT INTO users (id, name, email, loginMethod, role, createdAt, lastSignedIn) VALUES ('abdellah-test-user', 'Abdellah', 'abdellah@example.com', 'email', 'user', NOW(), NOW()) ON DUPLICATE KEY UPDATE lastSignedIn = NOW();",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 406
+}

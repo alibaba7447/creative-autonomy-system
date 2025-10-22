@@ -10,7 +10,8 @@ import {
   Sun,
   TrendingUp,
   LogOut,
-  Home
+  Home,
+  BarChart3
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -24,6 +25,22 @@ export default function Dashboard() {
   };
 
   const sections = [
+    {
+      title: "Mon Bilan",
+      description: "Vue d'ensemble complète de ton système",
+      icon: TrendingUp,
+      href: "/overview",
+      color: "text-indigo-600 dark:text-indigo-400",
+      bgColor: "bg-indigo-50 dark:bg-indigo-950/30",
+    },
+    {
+      title: "Analytique & Insights",
+      description: "Graphiques, statistiques et recommandations",
+      icon: Compass,
+      href: "/analytics",
+      color: "text-cyan-600 dark:text-cyan-400",
+      bgColor: "bg-cyan-50 dark:bg-cyan-950/30",
+    },
     {
       title: "Plancher & Plafond",
       description: "Suis ta sécurité financière mensuelle",

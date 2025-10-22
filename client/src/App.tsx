@@ -12,6 +12,8 @@ import Cycles from "./pages/Cycles";
 import Reflections from "./pages/Reflections";
 import Routines from "./pages/Routines";
 import Coaching from "./pages/Coaching";
+import Analytics from "./pages/Analytics";
+import Overview from "./pages/Overview";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -25,6 +27,8 @@ function Router() {
       <Route path="/reflections" component={Reflections} />
       <Route path="/routines" component={Routines} />
       <Route path="/coaching" component={Coaching} />
+      <Route path="/analytics" component={Analytics} />
+      <Route path="/overview" component={Overview} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
