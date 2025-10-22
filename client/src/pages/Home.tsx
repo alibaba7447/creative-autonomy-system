@@ -19,7 +19,7 @@ export default function Home() {
           <div>
             {isAuthenticated ? (
               <Link href="/dashboard">
-                <Button variant="default">Mon espace</Button>
+                <Button variant="default">Accéder à mon bilan</Button>
               </Link>
             ) : (
               <a href={getLoginUrl()}>
@@ -51,7 +51,7 @@ export default function Home() {
               {isAuthenticated ? (
                 <Link href="/dashboard">
                   <Button size="lg" className="gap-2">
-                    Accéder à mon espace
+                    Voir mon bilan
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>
@@ -115,7 +115,7 @@ export default function Home() {
               {isAuthenticated ? (
                 <Link href="/dashboard">
                   <Button size="lg" variant="outline" className="gap-2">
-                    Découvrir le système
+                    Voir mon bilan
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                 </Link>

@@ -14,13 +14,15 @@ import Routines from "./pages/Routines";
 import Coaching from "./pages/Coaching";
 import Analytics from "./pages/Analytics";
 import Overview from "./pages/Overview";
+import OverviewEnhanced from "./pages/OverviewEnhanced";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
-      <Route path={"/dashboard"} component={Dashboard} />
+       <Route path="/dashboard" component={OverviewEnhanced} />
+      <Route path="/nav" component={Dashboard} />
       <Route path="/finances" component={Finances} />
       <Route path="/projects" component={Projects} />
       <Route path="/cycles" component={Cycles} />
@@ -29,6 +31,7 @@ function Router() {
       <Route path="/coaching" component={Coaching} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/overview" component={Overview} />
+      <Route path="/dashboard" component={OverviewEnhanced} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
