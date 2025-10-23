@@ -231,6 +231,13 @@ export async function getCycle(id: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function deleteCycle(id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(cycles).where(eq(cycles.id, id));
+}
+
 // Weekly Progress
 export async function upsertWeeklyProgress(progress: InsertWeeklyProgress) {
   const db = await getDb();

@@ -187,6 +187,13 @@ export const appRouter = router({
         await db.updateCycle(id, updates);
         return { success: true };
       }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deleteCycle(input.id);
+        return { success: true };
+      }),
   }),
 
   weeklyProgress: router({

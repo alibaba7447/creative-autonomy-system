@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "wouter";
-import { ArrowLeft, Plus, Calendar as CalendarIcon } from "lucide-react";
+import { ArrowLeft, Plus, Calendar as CalendarIcon, Edit2, Trash2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -17,6 +17,8 @@ export default function Cycles() {
   const utils = trpc.useUtils();
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [newPhase, setNewPhase] = useState<"exploration" | "production" | "consolidation" | "meta">("exploration");
   const [newNotes, setNewNotes] = useState("");
@@ -30,6 +32,25 @@ export default function Cycles() {
       setNewPhase("exploration");
       setNewNotes("");
       toast.success("Cycle créé");
+    },
+  });
+  
+  const updateMutation = trpc.cycles.update.useMutation({
+    onSuccess: () => {
+      utils.cycles.list.invalidate();
+      setIsEditOpen(false);
+      setEditingId(null);
+      setNewTitle("");
+      setNewPhase("exploration");
+      setNewNotes("");
+      toast.success("Cycle modifié");
+    },
+  });
+  
+  const deleteMutation = trpc.cycles.delete.useMutation({
+    onSuccess: () => {
+      utils.cycles.list.invalidate();
+      toast.success("Cycle supprimé");
     },
   });
 
@@ -50,6 +71,36 @@ export default function Cycles() {
       endDate,
       notes: newNotes,
     });
+  };
+  
+  const handleEdit = (cycle: any) => {
+    setEditingId(cycle.id);
+    setNewTitle(cycle.title);
+    setNewPhase(cycle.phase);
+    setNewNotes(cycle.notes || "");
+    setIsEditOpen(true);
+  };
+  
+  const handleUpdate = () => {
+    if (!newTitle.trim()) {
+      toast.error("Le titre est requis");
+      return;
+    }
+    
+    if (!editingId) return;
+    
+    updateMutation.mutate({
+      id: editingId,
+      title: newTitle,
+      phase: newPhase,
+      notes: newNotes,
+    });
+  };
+  
+  const handleDelete = (id: string) => {
+    if (confirm("Es-tu sûr de vouloir supprimer ce cycle ?")) {
+      deleteMutation.mutate({ id });
+    }
   };
 
   const phaseColors = {
@@ -147,6 +198,56 @@ export default function Cycles() {
               </div>
             </DialogContent>
           </Dialog>
+          
+          {/* Edit Dialog */}
+          <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Modifier le cycle</DialogTitle>
+                <DialogDescription>
+                  Mets à jour les informations de ton cycle
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-title">Titre du cycle</Label>
+                  <Input
+                    id="edit-title"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="Cycle printemps 2025"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-phase">Phase du cycle</Label>
+                  <Select value={newPhase} onValueChange={(v: any) => setNewPhase(v)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="exploration">Exploration</SelectItem>
+                      <SelectItem value="production">Production</SelectItem>
+                      <SelectItem value="consolidation">Consolidation</SelectItem>
+                      <SelectItem value="meta">Méta-réflexion</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-notes">Notes</Label>
+                  <Textarea
+                    id="edit-notes"
+                    value={newNotes}
+                    onChange={(e) => setNewNotes(e.target.value)}
+                    placeholder="Objectifs, intentions..."
+                    rows={3}
+                  />
+                </div>
+                <Button onClick={handleUpdate} disabled={updateMutation.isPending} className="w-full">
+                  Mettre à jour
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </header>
 
@@ -166,8 +267,8 @@ export default function Cycles() {
           <div className="space-y-4">
             <h2 className="text-2xl font-medium">Mes cycles</h2>
             {cycles && cycles.length > 0 ? (
-              <div className="grid gap-4">
-                {cycles.map((cycle) => {
+              <div className="grid gap-4" key={`cycles-${cycles.length}`}>
+                {cycles.map((cycle, idx) => {
                   const startDate = new Date(cycle.startDate);
                   const endDate = new Date(cycle.endDate);
                   const now = new Date();
@@ -176,8 +277,8 @@ export default function Cycles() {
                   
                   return (
                     <Card
-                      key={cycle.id}
-                      className={`${phaseColors[cycle.phase]} border-l-4 ${
+                      key={`${cycle.id}-${idx}`}
+                      className={`${phaseColors[cycle.phase]} border-l-4 transition-all ${
                         isActive ? "ring-2 ring-primary" : ""
                       }`}
                     >
@@ -213,6 +314,26 @@ export default function Cycles() {
                         {cycle.notes && (
                           <p className="text-sm text-muted-foreground">{cycle.notes}</p>
                         )}
+                        <div className="flex gap-2 pt-4 border-t border-border/50">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => handleEdit(cycle)}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                            Modifier
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="gap-2"
+                            onClick={() => handleDelete(cycle.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Supprimer
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );

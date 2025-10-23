@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "wouter";
-import { ArrowLeft, Plus, MoreVertical, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, MoreVertical, Trash2, Edit2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -18,6 +18,8 @@ export default function Projects() {
   const utils = trpc.useUtils();
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newStatus, setNewStatus] = useState<"exploration" | "production" | "consolidation" | "completed" | "paused">("exploration");
@@ -39,6 +41,12 @@ export default function Projects() {
   const updateMutation = trpc.projects.update.useMutation({
     onSuccess: () => {
       utils.projects.list.invalidate();
+      setIsEditOpen(false);
+      setEditingId(null);
+      setNewTitle("");
+      setNewDescription("");
+      setNewStatus("exploration");
+      setNewSatisfaction(5);
       toast.success("Projet mis à jour");
     },
   });
@@ -71,9 +79,35 @@ export default function Projects() {
   };
 
   const handleDelete = (projectId: string) => {
-    if (confirm("Supprimer ce projet ?")) {
+    if (confirm("Es-tu sûr de vouloir supprimer ce projet ?")) {
       deleteMutation.mutate({ id: projectId });
     }
+  };
+  
+  const handleEdit = (project: any) => {
+    setEditingId(project.id);
+    setNewTitle(project.title);
+    setNewDescription(project.description || "");
+    setNewStatus(project.status);
+    setNewSatisfaction(project.satisfactionLevel || 5);
+    setIsEditOpen(true);
+  };
+  
+  const handleUpdate = () => {
+    if (!newTitle.trim()) {
+      toast.error("Le titre est requis");
+      return;
+    }
+    
+    if (!editingId) return;
+    
+    updateMutation.mutate({
+      id: editingId,
+      title: newTitle,
+      description: newDescription,
+      status: newStatus,
+      satisfactionLevel: newSatisfaction,
+    });
   };
 
   const statusColumns = [
@@ -211,6 +245,12 @@ export default function Projects() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleEdit(project)}
+                                >
+                                  <Edit2 className="h-4 w-4 mr-2" />
+                                  Modifier
+                                </DropdownMenuItem>
                                 {statusColumns.map((col) => (
                                   <DropdownMenuItem
                                     key={col.status}
@@ -249,6 +289,66 @@ export default function Projects() {
           </div>
         </div>
       </main>
+      
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le projet</DialogTitle>
+            <DialogDescription>
+              Mets à jour les informations de ton projet
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Titre du projet</Label>
+              <Input
+                id="edit-title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Mon nouveau projet créatif"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="Décris ton projet..."
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-status">Phase</Label>
+              <Select value={newStatus} onValueChange={(v: any) => setNewStatus(v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="exploration">Exploration</SelectItem>
+                  <SelectItem value="production">Production</SelectItem>
+                  <SelectItem value="consolidation">Consolidation</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-satisfaction">Niveau de satisfaction (1-10)</Label>
+              <Input
+                id="edit-satisfaction"
+                type="number"
+                min="1"
+                max="10"
+                value={newSatisfaction}
+                onChange={(e) => setNewSatisfaction(Number(e.target.value))}
+              />
+            </div>
+            <Button onClick={handleUpdate} disabled={updateMutation.isPending} className="w-full">
+              Mettre à jour
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
