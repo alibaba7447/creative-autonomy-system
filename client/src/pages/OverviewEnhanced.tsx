@@ -17,7 +17,9 @@ import {
   LogOut,
   Home,
   BarChart3,
-  Zap
+  Zap,
+  PieChart,
+  LineChart
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -300,6 +302,97 @@ export default function OverviewEnhanced() {
             </Card>
           </div>
 
+          {/* Analytics Section */}
+          <div className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Projets par statut */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <PieChart className="h-5 w-5 text-blue-600" />
+                    Projets par phase
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {projects && projects.length > 0 ? (
+                    <div className="space-y-2">
+                      {[
+                        { status: "exploration", label: "Exploration", color: "bg-blue-500" },
+                        { status: "production", label: "Production", color: "bg-green-500" },
+                        { status: "consolidation", label: "Consolidation", color: "bg-amber-500" },
+                        { status: "completed", label: "Terminé", color: "bg-gray-500" },
+                      ].map((phase) => {
+                        const count = projects.filter((p) => p.status === phase.status).length;
+                        const percentage = (count / projects.length) * 100;
+                        return (
+                          <div key={phase.status}>
+                            <div className="flex justify-between text-xs mb-1">
+                              <span>{phase.label}</span>
+                              <span className="font-bold">{count}</span>
+                            </div>
+                            <div className="h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className={`h-full ${phase.color}`}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Aucun projet créé</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Tendance financière */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <LineChart className="h-5 w-5 text-green-600" />
+                    Tendance financière
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {currentFinancial ? (
+                    <div className="space-y-2">
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span>Revenu actuel</span>
+                          <span className="font-bold">{currentFinancial.actualRevenue}€</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span>Plancher</span>
+                          <span className="font-bold">{currentFinancial.monthlyFloor}€</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span>Expansion</span>
+                          <span className="font-bold">{currentFinancial.monthlyExpansion}€</span>
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t border-border/50">
+                        <div className="text-xs text-muted-foreground">
+                          {currentFinancial.actualRevenue >= currentFinancial.monthlyFloor ? (
+                            <span className="text-green-600 font-medium">✅ Plancher atteint</span>
+                          ) : (
+                            <span className="text-amber-600 font-medium">⚠️ {currentFinancial.monthlyFloor - currentFinancial.actualRevenue}€ à atteindre</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Aucune donnée financière</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
           {/* Cycles & Actions */}
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Cycle Actuel */}
@@ -381,6 +474,46 @@ export default function OverviewEnhanced() {
                     </p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Statistiques globales */}
+          <div className="grid md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Total projets</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{projects?.length || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">{activeProjects.length} actifs</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Cycles créés</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{cycles?.length || 0}</div>
+                <p className="text-xs text-muted-foreground mt-1">{activeCycle ? "1 en cours" : "Aucun actif"}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Satisfaction moyenne</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{avgSatisfaction}/10</div>
+                <p className="text-xs text-muted-foreground mt-1">Tous projets</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Alignement</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{alignmentScore}/10</div>
+                <p className="text-xs text-muted-foreground mt-1">Créer/Transmettre/Gagner</p>
               </CardContent>
             </Card>
           </div>
