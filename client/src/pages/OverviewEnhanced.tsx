@@ -19,9 +19,11 @@ import {
   BarChart3,
   Zap,
   PieChart,
-  LineChart
+  LineChart,
+  TrendingDown
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useState } from "react";
 
 export default function OverviewEnhanced() {
   const { user, logout } = useAuth();
@@ -167,7 +169,231 @@ export default function OverviewEnhanced() {
             </CardContent>
           </Card>
 
-          {/* Four Pillars - Récapitulatif avec icônes */}
+          {/* ANALYTICS SECTION - MAIN FOCUS */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-6 w-6 text-cyan-600" />
+              <h2 className="text-2xl font-bold">Analytique & Insights</h2>
+            </div>
+
+            {/* Métriques principales en grandes cartes */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Plancher Atteint */}
+              <Card className="border-l-4 border-l-green-500 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-muted-foreground">Plancher atteint</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="text-5xl font-bold text-green-600">
+                      {floorPercentage.toFixed(0)}%
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {currentFinancial?.actualRevenue || 0}€ / {currentFinancial?.monthlyFloor || 0}€
+                    </p>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-green-500"
+                      style={{ width: `${Math.min(floorPercentage, 100)}%` }}
+                    />
+                  </div>
+                  {floorPercentage >= 100 && (
+                    <div className="text-xs text-green-600 font-medium">✅ Objectif atteint</div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Expansion */}
+              <Card className="border-l-4 border-l-amber-500 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-muted-foreground">Expansion</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="text-5xl font-bold text-amber-600">
+                      {expansionPercentage.toFixed(0)}%
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {currentFinancial?.actualRevenue || 0}€ / {currentFinancial?.monthlyExpansion || 0}€
+                    </p>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-amber-500"
+                      style={{ width: `${Math.min(expansionPercentage, 100)}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-amber-600 font-medium">
+                    {expansionPercentage < 100 ? `${(100 - expansionPercentage).toFixed(0)}% à atteindre` : "🎉 Expansion atteinte"}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Satisfaction Moyenne */}
+              <Card className="border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-muted-foreground">Satisfaction moyenne</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="text-5xl font-bold text-blue-600">
+                      {avgSatisfaction}/10
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {projects?.length || 0} projet{projects?.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-500"
+                      style={{ width: `${(Number(avgSatisfaction) / 10) * 100}%` }}
+                    />
+                  </div>
+                  {Number(avgSatisfaction) >= 7 && (
+                    <div className="text-xs text-blue-600 font-medium">✅ Bonne satisfaction</div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Routines Complètes */}
+              <Card className="border-l-4 border-l-orange-500 hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-muted-foreground">Routines complètes</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="text-5xl font-bold text-orange-600">
+                      {completedRoutinesThisWeek}/7
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Cette semaine
+                    </p>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-orange-500"
+                      style={{ width: `${(completedRoutinesThisWeek / 7) * 100}%` }}
+                    />
+                  </div>
+                  {completedRoutinesThisWeek >= 5 && (
+                    <div className="text-xs text-orange-600 font-medium">✅ Excellent suivi</div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Tableaux détaillés */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Projets par phase */}
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <PieChart className="h-5 w-5 text-blue-600" />
+                    Projets par phase
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {projects && projects.length > 0 ? (
+                    <div className="space-y-3">
+                      {[
+                        { status: "exploration", label: "Exploration", color: "bg-blue-500" },
+                        { status: "production", label: "Production", color: "bg-green-500" },
+                        { status: "consolidation", label: "Consolidation", color: "bg-amber-500" },
+                        { status: "completed", label: "Terminé", color: "bg-gray-500" },
+                      ].map((phase) => {
+                        const count = projects.filter((p) => p.status === phase.status).length;
+                        const percentage = projects.length > 0 ? (count / projects.length) * 100 : 0;
+                        return (
+                          <div key={phase.status}>
+                            <div className="flex justify-between text-sm mb-2">
+                              <span className="font-medium">{phase.label}</span>
+                              <span className="font-bold text-lg">{count}</span>
+                            </div>
+                            <div className="h-3 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className={`h-full ${phase.color}`}
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucun projet créé</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Tendance financière */}
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <LineChart className="h-5 w-5 text-green-600" />
+                    Tendance financière
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {currentFinancial ? (
+                    <div className="space-y-3">
+                      <div className="p-3 rounded-lg bg-muted/50">
+                        <div className="text-xs text-muted-foreground mb-1">Revenu actuel</div>
+                        <div className="text-2xl font-bold text-green-600">{currentFinancial.actualRevenue}€</div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted/50">
+                        <div className="text-xs text-muted-foreground mb-1">Plancher</div>
+                        <div className="text-2xl font-bold text-blue-600">{currentFinancial.monthlyFloor}€</div>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted/50">
+                        <div className="text-xs text-muted-foreground mb-1">Expansion</div>
+                        <div className="text-2xl font-bold text-amber-600">{currentFinancial.monthlyExpansion}€</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">Aucune donnée financière</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Alignement détaillé */}
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Compass className="h-5 w-5 text-amber-600" />
+                  Alignement - Créer / Transmettre / Gagner
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg bg-muted/50 text-center">
+                    <div className="text-sm text-muted-foreground mb-2">Créer</div>
+                    <div className="text-4xl font-bold text-amber-600">{latestReflection?.createScore ?? 0}</div>
+                    <div className="text-xs text-muted-foreground mt-2">/10</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/50 text-center">
+                    <div className="text-sm text-muted-foreground mb-2">Transmettre</div>
+                    <div className="text-4xl font-bold text-amber-600">{latestReflection?.teachScore ?? 0}</div>
+                    <div className="text-xs text-muted-foreground mt-2">/10</div>
+                  </div>
+                  <div className="p-4 rounded-lg bg-muted/50 text-center">
+                    <div className="text-sm text-muted-foreground mb-2">Gagner</div>
+                    <div className="text-4xl font-bold text-amber-600">{latestReflection?.earnScore ?? 0}</div>
+                    <div className="text-xs text-muted-foreground mt-2">/10</div>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-border/50">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Moyenne globale</span>
+                    <span className="text-2xl font-bold text-amber-600">{alignmentScore}/10</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Four Pillars - Résumé */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Finances */}
             <Card className="hover:border-primary/50 transition-colors">
@@ -205,9 +431,6 @@ export default function OverviewEnhanced() {
                     />
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground pt-1 border-t border-border/50">
-                  {currentFinancial?.actualRevenue || 0} € / {currentFinancial?.monthlyFloor || 0} €
-                </div>
               </CardContent>
             </Card>
 
@@ -233,40 +456,30 @@ export default function OverviewEnhanced() {
                     <div className="text-xs text-muted-foreground">Satisfaction</div>
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground pt-1 border-t border-border/50">
-                  {projects?.length || 0} projets total
-                </div>
               </CardContent>
             </Card>
 
-            {/* Alignement */}
+            {/* Cycles */}
             <Card className="hover:border-primary/50 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <CardTitle className="text-base">Alignement</CardTitle>
-                    <CardDescription className="text-xs">Créer/Transmettre/Gagner</CardDescription>
+                    <CardTitle className="text-base">Cycles</CardTitle>
+                    <CardDescription className="text-xs">Progression 6 semaines</CardDescription>
                   </div>
-                  <Compass className="h-6 w-6 text-amber-600" />
+                  <Calendar className="h-6 w-6 text-purple-600" />
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="grid grid-cols-3 gap-1 text-center text-xs">
+                <div className="grid grid-cols-2 gap-2">
                   <div className="p-2 rounded bg-muted">
-                    <div className="font-bold text-amber-600">{latestReflection?.createScore ?? 0}</div>
-                    <div className="text-muted-foreground text-xs">Créer</div>
+                    <div className="text-lg font-bold text-purple-600">{cycles?.length || 0}</div>
+                    <div className="text-xs text-muted-foreground">Créés</div>
                   </div>
                   <div className="p-2 rounded bg-muted">
-                    <div className="font-bold text-amber-600">{latestReflection?.teachScore ?? 0}</div>
-                    <div className="text-muted-foreground text-xs">Enseigner</div>
+                    <div className="text-lg font-bold text-purple-600">{activeCycle ? "1" : "0"}</div>
+                    <div className="text-xs text-muted-foreground">En cours</div>
                   </div>
-                  <div className="p-2 rounded bg-muted">
-                    <div className="font-bold text-amber-600">{latestReflection?.earnScore ?? 0}</div>
-                    <div className="text-muted-foreground text-xs">Gagner</div>
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground pt-1 border-t border-border/50">
-                  Moyenne : {alignmentScore}/10
                 </div>
               </CardContent>
             </Card>
@@ -295,105 +508,11 @@ export default function OverviewEnhanced() {
                     />
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground pt-1 border-t border-border/50">
-                  {routines?.length || 0} jours suivis
-                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Analytics Section */}
-          <div className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Projets par statut */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <PieChart className="h-5 w-5 text-blue-600" />
-                    Projets par phase
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {projects && projects.length > 0 ? (
-                    <div className="space-y-2">
-                      {[
-                        { status: "exploration", label: "Exploration", color: "bg-blue-500" },
-                        { status: "production", label: "Production", color: "bg-green-500" },
-                        { status: "consolidation", label: "Consolidation", color: "bg-amber-500" },
-                        { status: "completed", label: "Terminé", color: "bg-gray-500" },
-                      ].map((phase) => {
-                        const count = projects.filter((p) => p.status === phase.status).length;
-                        const percentage = (count / projects.length) * 100;
-                        return (
-                          <div key={phase.status}>
-                            <div className="flex justify-between text-xs mb-1">
-                              <span>{phase.label}</span>
-                              <span className="font-bold">{count}</span>
-                            </div>
-                            <div className="h-2 bg-muted rounded-full overflow-hidden">
-                              <div
-                                className={`h-full ${phase.color}`}
-                                style={{ width: `${percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Aucun projet créé</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Tendance financière */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <LineChart className="h-5 w-5 text-green-600" />
-                    Tendance financière
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {currentFinancial ? (
-                    <div className="space-y-2">
-                      <div>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span>Revenu actuel</span>
-                          <span className="font-bold">{currentFinancial.actualRevenue}€</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span>Plancher</span>
-                          <span className="font-bold">{currentFinancial.monthlyFloor}€</span>
-                        </div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between text-xs mb-1">
-                          <span>Expansion</span>
-                          <span className="font-bold">{currentFinancial.monthlyExpansion}€</span>
-                        </div>
-                      </div>
-                      <div className="pt-2 border-t border-border/50">
-                        <div className="text-xs text-muted-foreground">
-                          {currentFinancial.actualRevenue >= currentFinancial.monthlyFloor ? (
-                            <span className="text-green-600 font-medium">✅ Plancher atteint</span>
-                          ) : (
-                            <span className="text-amber-600 font-medium">⚠️ {currentFinancial.monthlyFloor - currentFinancial.actualRevenue}€ à atteindre</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Aucune donnée financière</p>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Cycles & Actions */}
+          {/* Cycle Actuel & Actions */}
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Cycle Actuel */}
             {activeCycle ? (
@@ -474,46 +593,6 @@ export default function OverviewEnhanced() {
                     </p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Statistiques globales */}
-          <div className="grid md:grid-cols-4 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Total projets</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{projects?.length || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1">{activeProjects.length} actifs</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Cycles créés</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{cycles?.length || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1">{activeCycle ? "1 en cours" : "Aucun actif"}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Satisfaction moyenne</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{avgSatisfaction}/10</div>
-                <p className="text-xs text-muted-foreground mt-1">Tous projets</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Alignement</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{alignmentScore}/10</div>
-                <p className="text-xs text-muted-foreground mt-1">Créer/Transmettre/Gagner</p>
               </CardContent>
             </Card>
           </div>
