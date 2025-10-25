@@ -143,3 +143,39 @@ export const dailyRoutines = mysqlTable("daily_routines", {
 export type DailyRoutine = typeof dailyRoutines.$inferSelect;
 export type InsertDailyRoutine = typeof dailyRoutines.$inferInsert;
 
+/**
+ * Revenue sources tracking
+ */
+export const revenueSources = mysqlTable("revenue_sources", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  amount: int("amount").notNull(),
+  frequency: mysqlEnum("frequency", ["once", "daily", "weekly", "monthly", "yearly"]).default("monthly").notNull(),
+  description: text("description"),
+  date: timestamp("date").notNull(),
+  createdAt: timestamp("createdAt").defaultNow(),
+  updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+export type RevenueSource = typeof revenueSources.$inferSelect;
+export type InsertRevenueSource = typeof revenueSources.$inferInsert;
+
+/**
+ * Expenses tracking
+ */
+export const expenses = mysqlTable("expenses", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  userId: varchar("userId", { length: 64 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  amount: int("amount").notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  description: text("description"),
+  date: timestamp("date").notNull(),
+  createdAt: timestamp("createdAt").defaultNow(),
+  updatedAt: timestamp("updatedAt").defaultNow(),
+});
+
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = typeof expenses.$inferInsert;
+

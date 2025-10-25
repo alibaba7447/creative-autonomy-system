@@ -8,7 +8,9 @@ import {
   cycles, InsertCycle,
   weeklyProgress, InsertWeeklyProgress,
   quarterlyReflections, InsertQuarterlyReflection,
-  dailyRoutines, InsertDailyRoutine
+  dailyRoutines, InsertDailyRoutine,
+  revenueSources, InsertRevenueSource,
+  expenses, InsertExpense
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -333,5 +335,67 @@ export async function getUserDailyRoutines(userId: string, limit: number = 30) {
     .where(eq(dailyRoutines.userId, userId))
     .orderBy(desc(dailyRoutines.date))
     .limit(limit);
+}
+
+// Revenue Sources
+export async function createRevenueSource(source: InsertRevenueSource) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.insert(revenueSources).values(source);
+}
+
+export async function updateRevenueSource(id: string, updates: Partial<InsertRevenueSource>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(revenueSources).set({ ...updates, updatedAt: new Date() }).where(eq(revenueSources.id, id));
+}
+
+export async function deleteRevenueSource(id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(revenueSources).where(eq(revenueSources.id, id));
+}
+
+export async function getUserRevenueSources(userId: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(revenueSources)
+    .where(eq(revenueSources.userId, userId))
+    .orderBy(desc(revenueSources.date));
+}
+
+// Expenses
+export async function createExpense(expense: InsertExpense) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.insert(expenses).values(expense);
+}
+
+export async function updateExpense(id: string, updates: Partial<InsertExpense>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.update(expenses).set({ ...updates, updatedAt: new Date() }).where(eq(expenses.id, id));
+}
+
+export async function deleteExpense(id: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(expenses).where(eq(expenses.id, id));
+}
+
+export async function getUserExpenses(userId: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select().from(expenses)
+    .where(eq(expenses.userId, userId))
+    .orderBy(desc(expenses.date));
 }
 

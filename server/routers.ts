@@ -251,6 +251,99 @@ export const appRouter = router({
       }),
   }),
 
+  revenueSources: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserRevenueSources(ctx.user.id);
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        amount: z.number(),
+        frequency: z.enum(["once", "daily", "weekly", "monthly", "yearly"]).optional(),
+        description: z.string().optional(),
+        date: z.date(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const id = nanoid();
+        await db.createRevenueSource({
+          id,
+          userId: ctx.user.id,
+          ...input,
+          frequency: input.frequency ?? "monthly",
+        });
+        return { id, success: true };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.string(),
+        name: z.string().optional(),
+        amount: z.number().optional(),
+        frequency: z.enum(["once", "daily", "weekly", "monthly", "yearly"]).optional(),
+        description: z.string().optional(),
+        date: z.date().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...updates } = input;
+        await db.updateRevenueSource(id, updates);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deleteRevenueSource(input.id);
+        return { success: true };
+      }),
+  }),
+
+  expenses: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserExpenses(ctx.user.id);
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        amount: z.number(),
+        category: z.string(),
+        description: z.string().optional(),
+        date: z.date(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const id = nanoid();
+        await db.createExpense({
+          id,
+          userId: ctx.user.id,
+          ...input,
+        });
+        return { id, success: true };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.string(),
+        name: z.string().optional(),
+        amount: z.number().optional(),
+        category: z.string().optional(),
+        description: z.string().optional(),
+        date: z.date().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...updates } = input;
+        await db.updateExpense(id, updates);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.deleteExpense(input.id);
+        return { success: true };
+      }),
+  }),
+
   dailyRoutines: router({
     get: protectedProcedure
       .input(z.object({ date: z.date() }))

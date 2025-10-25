@@ -15,6 +15,13 @@
       "when": 1761058308487,
       "tag": "0001_minor_slyde",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1761379730058,
+      "tag": "0002_acoustic_black_knight",
+      "breakpoints": true
     }
   ]
 }
